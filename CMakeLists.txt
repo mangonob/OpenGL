@@ -24,10 +24,12 @@ include_directories(${GLEW_INCLUDE_DIRS} ${GLFW_INCLUDE_DIRS})
 
 
 ## add source code
-set(SOURCE_FILES main.cpp LoadShaders.cpp LoadShaders.h)
+set(SOURCE_FILES main.cpp LoadShaders.cpp LoadShaders.h Resources/triangles.frag Resources/triangles.vert)
+
 add_executable(OpenGL ${SOURCE_FILES})
 
 
 ## copy resources files
-file(GLOB RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/*)
-file(COPY ${RESOURCES} DESTINATION ${CMAKE_BINARY_DIR})
+file(GLOB RESOURCES "${CMAKE_CURRENT_SOURCE_DIR}/Resources/*")
+file(COPY ${RESOURCES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(/dev/null /dev/null COPYONLY)
