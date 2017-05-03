@@ -9,8 +9,10 @@ using namespace std;
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
 
-#include "LoadShaders.h"
 #include "vmath.h"
+using namespace vmath;
+
+#include "LoadShaders.h"
 
 #define BUFFER_OFFSET(offset) ((void *)(offset))
 
@@ -24,9 +26,8 @@ GLuint VAOs[NumVAOs];
 GLuint VBOs[NumVBOs];
 GLuint EBOs[NumEBOs];
 
-const GLuint NumVertices = 6;
-
 void init(void) {
+
     // four
     static const GLfloat vertex_positions[] =
     {
@@ -85,9 +86,9 @@ void init(void) {
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT);
 
-//    glBindVertexArray(VAOs[Triangles]);
-    vmath::Tmat4 model_matrix;
-    model_matrix = vmath::translate(-3.0f, 0.0f, -5.0f);
+    mat4 model_matrix;
+    model_matrix = translate(-3.0f, 0.0f, -5.0f);
+
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glFlush();
 }
