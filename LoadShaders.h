@@ -6,7 +6,7 @@
 #define OPENGL_LOADSHADERS_H
 
 #include <stdio.h>
-#include <OpenGL/gl.h>
+#include <OpenGL/gl3.h>
 #include <GLUT/glut.h>
 
 typedef struct {

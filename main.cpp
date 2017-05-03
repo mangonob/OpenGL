@@ -2,11 +2,11 @@
 using namespace std;
 
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+//#include <GL/glew.h>
+//#include <GLFW/glfw3.h>
 
 #include <GLUT/glut.h>
-#include <OpenGL/gl.h>
+#include <OpenGL/gl3.h>
 #include "LoadShaders.h"
 
 
@@ -23,8 +23,8 @@ GLuint Buffers[NumBuffers];
 const GLuint NumVertices = 6;
 
 void init(void) {
-    glGenVertexArraysAPPLE(NumVAOs, VAOs);
-    glBindVertexArrayAPPLE(VAOs[Trangles]);
+    glGenVertexArrays(NumVAOs, VAOs);
+    glBindVertexArray(VAOs[Trangles]);
     GLfloat vertices[NumVertices][2] = {
             { -0.90, -0.90 }, // Triangle 1
             {  0.85, -0.90 },
@@ -54,19 +54,19 @@ void init(void) {
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glBindVertexArrayAPPLE(VAOs[Trangles]);
+    glBindVertexArray(VAOs[Trangles]);
     glDrawArrays(GL_TRIANGLES, 0, NumVertices);
     glFlush();
 }
 
 int main(int argc, const char ** argv) {
     glutInit(&argc, (char **)argv);
-    glutInitDisplayMode(GLUT_RGB);
+    glutInitDisplayMode(GLUT_RGBA | GLUT_3_2_CORE_PROFILE);
     glutInitWindowSize(512, 512);
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
 
-//    init();
+    init();
 
     glutDisplayFunc(display);
 
