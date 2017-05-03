@@ -10,43 +10,62 @@ using namespace std;
 #include <OpenGL/gl3ext.h>
 
 #include "LoadShaders.h"
-
+#include "vmath.h"
 
 #define BUFFER_OFFSET(offset) ((void *)(offset))
 
 
 enum VAO_IDs { Triangles, NumVAOs };
-enum Buffer_IDs { ArrayBuffer, NumBuffers };
-enum Attrib_IDs { vPosition = 0 };
+enum VBO_IDs { VertexBuffer, NumVBOs };
+enum EBO_IDs { ElementBuffer, NumEBOs };
+enum Attrib_IDs { vPosition, vColor };
 
 GLuint VAOs[NumVAOs];
-GLuint Buffers[NumBuffers];
+GLuint VBOs[NumVBOs];
+GLuint EBOs[NumEBOs];
 
 const GLuint NumVertices = 6;
 
-// four
-static const GLfloat vertex_positions[] = {
-    -1.0f, -1.0f, 0.0f, 1.0f,
-     1.0f, -1.0f, 0.0f, 1.0f,
-    -1.0f,  1.0f, 0.0f, 1.0f,
-     1.0f, -1.0f, 0.0f, 1.0f,
-};
-
 void init(void) {
-    glGenVertexArrays(NumVAOs, VAOs);
-    glBindVertexArray(VAOs[Triangles]);
-    GLfloat vertices[NumVertices][2] = {
-            { -0.90, -0.90 }, // Triangle 1
-            {  0.85, -0.90 },
-            { -0.90,  0.85 },
-            {  0.90, -0.85 }, // Triangle 3
-            {  0.90,  0.90 },
-            { -0.85,  0.90 },
+    // four
+    static const GLfloat vertex_positions[] =
+    {
+        -1.0f, -1.0f, 0.0f, 1.0f,
+        1.0f, -1.0f, 0.0f, 1.0f,
+        -1.0f,  1.0f, 0.0f, 1.0f,
+        1.0f, -1.0f, 0.0f, 1.0f,
     };
 
-    glGenBuffers(NumBuffers, Buffers);
-    glBindBuffer(GL_ARRAY_BUFFER, Buffers[ArrayBuffer]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    static const GLfloat vertex_colors[] =
+    {
+        1.0f, 1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 1.0f, 1.0f,
+        0.0f, 1.0f, 1.0f, 1.0f,
+    };
+
+    static const GLushort vertex_indices[] =
+    {
+        0, 1, 2,
+    };
+
+    // element buffer
+    glGenBuffers(NumEBOs, EBOs);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[ElementBuffer]);
+
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertex_indices), vertex_indices, GL_STATIC_DRAW);
+
+    // vertex array
+    glGenVertexArrays(NumVAOs, VAOs);
+    glBindVertexArray(VAOs[Triangles]);
+
+    // array buffer
+    glGenBuffers(NumVBOs, VBOs);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[VertexBuffer]);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_positions) + sizeof(vertex_colors), NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertex_positions), vertex_positions);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertex_positions), sizeof(vertex_colors), vertex_colors);
 
     ShaderInfo shaders[] = {
             { GL_VERTEX_SHADER, "triangles.vert" },
@@ -57,15 +76,17 @@ void init(void) {
     GLuint program = LoadShaders(shaders);
     glUseProgram(program);
 
-    glVertexAttribPointer(vPosition, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+    glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+    glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, (const void*) sizeof(vertex_positions));
     glEnableVertexAttribArray(vPosition);
+    glEnableVertexAttribArray(vColor);
 }
 
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glBindVertexArray(VAOs[Triangles]);
-    glDrawArrays(GL_TRIANGLES, 0, NumVertices);
+//    glBindVertexArray(VAOs[Triangles]);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
     glFlush();
 }
 

@@ -22,9 +22,11 @@ find_library(${GLEW_LIBRARY_DIRS} ${GLFW_LIBRARY_DIRS})
 
 include_directories(${GLEW_INCLUDE_DIRS} ${GLFW_INCLUDE_DIRS})
 
+include_directories(include)
+
 
 ## add source code
-set(SOURCE_FILES main.cpp LoadShaders.cpp LoadShaders.h Resources/triangles.frag Resources/triangles.vert)
+set(SOURCE_FILES main.cpp LoadShaders.cpp LoadShaders.h)
 
 add_executable(OpenGL ${SOURCE_FILES})
 
