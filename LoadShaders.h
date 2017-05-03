@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <OpenGL/gl3.h>
+#include <OpenGL/gl3ext.h>
 #include <GLUT/glut.h>
 
 typedef struct {

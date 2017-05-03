@@ -7,13 +7,15 @@ using namespace std;
 
 #include <GLUT/glut.h>
 #include <OpenGL/gl3.h>
+#include <OpenGL/gl3ext.h>
+
 #include "LoadShaders.h"
 
 
 #define BUFFER_OFFSET(offset) ((void *)(offset))
 
 
-enum VAO_IDs { Trangles, NumVAOs };
+enum VAO_IDs { Triangles, NumVAOs };
 enum Buffer_IDs { ArrayBuffer, NumBuffers };
 enum Attrib_IDs { vPosition = 0 };
 
@@ -24,14 +26,14 @@ const GLuint NumVertices = 6;
 
 void init(void) {
     glGenVertexArrays(NumVAOs, VAOs);
-    glBindVertexArray(VAOs[Trangles]);
+    glBindVertexArray(VAOs[Triangles]);
     GLfloat vertices[NumVertices][2] = {
             { -0.90, -0.90 }, // Triangle 1
             {  0.85, -0.90 },
-            { -0.90,    0.85 },
-            {  0.90, -0.85 }, // Trangle 3
-            {  0.90,    0.90 },
-            { -0.85,    0.90 },
+            { -0.90,  0.85 },
+            {  0.90, -0.85 }, // Triangle 3
+            {  0.90,  0.90 },
+            { -0.85,  0.90 },
     };
 
     glGenBuffers(NumBuffers, Buffers);
@@ -54,7 +56,7 @@ void init(void) {
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glBindVertexArray(VAOs[Trangles]);
+    glBindVertexArray(VAOs[Triangles]);
     glDrawArrays(GL_TRIANGLES, 0, NumVertices);
     glFlush();
 }
