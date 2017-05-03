@@ -86,6 +86,8 @@ void display(void) {
     glClear(GL_COLOR_BUFFER_BIT);
 
 //    glBindVertexArray(VAOs[Triangles]);
+    vmath::Tmat4 model_matrix;
+    model_matrix = vmath::translate(-3.0f, 0.0f, -5.0f);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glFlush();
 }
