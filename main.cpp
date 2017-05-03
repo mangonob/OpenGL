@@ -24,6 +24,14 @@ GLuint Buffers[NumBuffers];
 
 const GLuint NumVertices = 6;
 
+// four
+static const GLfloat vertex_positions[] = {
+    -1.0f, -1.0f, 0.0f, 1.0f,
+     1.0f, -1.0f, 0.0f, 1.0f,
+    -1.0f,  1.0f, 0.0f, 1.0f,
+     1.0f, -1.0f, 0.0f, 1.0f,
+};
+
 void init(void) {
     glGenVertexArrays(NumVAOs, VAOs);
     glBindVertexArray(VAOs[Triangles]);
