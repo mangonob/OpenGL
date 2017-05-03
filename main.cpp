@@ -68,8 +68,8 @@ void init(void) {
     glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertex_positions), sizeof(vertex_colors), vertex_colors);
 
     ShaderInfo shaders[] = {
-            { GL_VERTEX_SHADER, "triangles.vert" },
-            { GL_FRAGMENT_SHADER, "triangles.frag" },
+            { GL_VERTEX_SHADER, "primitive_restart.vs.glsl" },
+            { GL_FRAGMENT_SHADER, "primitive_restart.fs.glsl" },
             { GL_NONE, NULL },
     };
 
