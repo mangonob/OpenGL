@@ -11,6 +11,7 @@ using namespace std;
 #include <ctime>
 
 #include "vmath.h"
+#include "vbm.h"
 using namespace vmath;
 
 
@@ -93,8 +94,8 @@ void init(void) {
     glBufferSubData(GL_ARRAY_BUFFER, sizeof(cube_positions), sizeof(cube_colors), cube_colors);
 
     ShaderInfo shaders[] = {
-            { GL_VERTEX_SHADER, "primitive_restart.vs.glsl" },
-            { GL_FRAGMENT_SHADER, "primitive_restart.fs.glsl" },
+            { GL_VERTEX_SHADER, "shaders/primitive_restart/primitive_restart.vs.glsl" },
+            { GL_FRAGMENT_SHADER, "shaders/primitive_restart/primitive_restart.fs.glsl" },
             { GL_NONE, NULL },
     };
 
