@@ -26,6 +26,11 @@ GLuint VAOs[NumVAOs];
 GLuint VBOs[NumVBOs];
 GLuint EBOs[NumEBOs];
 
+GLint render_model_matrix_loc;
+GLint render_projection_matrix_loc;
+
+float aspect = 1.0f;
+
 void init(void) {
 
     // four
@@ -77,6 +82,9 @@ void init(void) {
     GLuint program = LoadShaders(shaders);
     glUseProgram(program);
 
+    render_model_matrix_loc = glGetUniformLocation(program, "model_matrix");
+    render_projection_matrix_loc = glGetUniformLocation(program, "projection_matrix");
+
     glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
     glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, (const void*) sizeof(vertex_positions));
     glEnableVertexAttribArray(vPosition);
@@ -89,7 +97,27 @@ void display(void) {
     mat4 model_matrix;
     model_matrix = translate(-3.0f, 0.0f, -5.0f);
 
+    mat4 projection_matrix(frustum(-1.0f, 1.0f, -aspect, aspect, 1.0f, 5000.0f));
+    glUniformMatrix4fv(render_projection_matrix_loc, 1, GL_FALSE, projection_matrix);
+
+    model_matrix = translate(-3.0f, 0.0f, -5.0f);
+    glUniformMatrix4fv(render_model_matrix_loc, 1, GL_FALSE, model_matrix);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[ElementBuffer]);
+
+    model_matrix = translate(-1.0f, 0.0f, -5.0f);
+    glUniformMatrix4fv(render_model_matrix_loc, 1, GL_FALSE, model_matrix);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL);
+
+    model_matrix = translate(1.0f, 0.0f, -5.0f);
+    glUniformMatrix4fv(render_model_matrix_loc, 1, GL_FALSE, model_matrix);
+    glDrawElementsBaseVertex(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL, 0);
+
+    model_matrix = translate(3.0f, 0.0f, -5.0f);
+    glUniformMatrix4fv(render_model_matrix_loc, 1, GL_FALSE, model_matrix);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 3, 1);
+
     glFlush();
 }
 
