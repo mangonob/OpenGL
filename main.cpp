@@ -8,9 +8,11 @@ using namespace std;
 #include <GLUT/glut.h>
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
+#include <ctime>
 
 #include "vmath.h"
 using namespace vmath;
+
 
 #include "LoadShaders.h"
 
@@ -34,32 +36,49 @@ float aspect = 1.0f;
 void init(void) {
 
     // four
-    static const GLfloat vertex_positions[] =
+    static const GLfloat cube_positions[] =
     {
-        -1.0f, -1.0f, 0.0f, 1.0f,
-        1.0f, -1.0f, 0.0f, 1.0f,
-        -1.0f,  1.0f, 0.0f, 1.0f,
-        1.0f, -1.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, -1.0f, 1.0f,
+        -1.0f, -1.0f,  1.0f, 1.0f,
+        -1.0f,  1.0f, -1.0f, 1.0f,
+        -1.0f,  1.0f,  1.0f, 1.0f,
+        1.0f, -1.0f, -1.0f, 1.0f,
+        1.0f, -1.0f,  1.0f, 1.0f,
+        1.0f,  1.0f, -1.0f, 1.0f,
+        1.0f,  1.0f,  1.0f, 1.0f,
     };
 
-    static const GLfloat vertex_colors[] =
+    static const GLfloat cube_colors[] =
     {
         1.0f, 1.0f, 1.0f, 1.0f,
         1.0f, 1.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 1.0f, 1.0f,
+        1.0f, 0.0f, 0.0f, 1.0f,
         0.0f, 1.0f, 1.0f, 1.0f,
+        0.0f, 1.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 1.0f,
     };
 
-    static const GLushort vertex_indices[] =
+
+    // index of triangle_strips
+    static const GLushort cube_indices[] =
     {
-        0, 1, 2,
+        0, 1, 2, 3, 6, 7, 4, 5,     // first strip
+        0xFFFF,                     // primitive reset index
+        2, 6, 0, 4, 1, 5, 3, 7,     // second strip
     };
+
+
+    // setup OpenGL
+    glEnable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
 
     // element buffer
     glGenBuffers(NumEBOs, EBOs);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[ElementBuffer]);
 
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertex_indices), vertex_indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_indices), cube_indices, GL_STATIC_DRAW);
 
     // vertex array
     glGenVertexArrays(NumVAOs, VAOs);
@@ -69,9 +88,9 @@ void init(void) {
     glGenBuffers(NumVBOs, VBOs);
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[VertexBuffer]);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_positions) + sizeof(vertex_colors), NULL, GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertex_positions), vertex_positions);
-    glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertex_positions), sizeof(vertex_colors), vertex_colors);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_positions) + sizeof(cube_colors), NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(cube_positions), cube_positions);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(cube_positions), sizeof(cube_colors), cube_colors);
 
     ShaderInfo shaders[] = {
             { GL_VERTEX_SHADER, "primitive_restart.vs.glsl" },
@@ -86,39 +105,49 @@ void init(void) {
     render_projection_matrix_loc = glGetUniformLocation(program, "projection_matrix");
 
     glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-    glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, (const void*) sizeof(vertex_positions));
+    glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, (const void*)sizeof(cube_positions));
     glEnableVertexAttribArray(vPosition);
     glEnableVertexAttribArray(vColor);
 }
 
 void display(void) {
+    static const vec3 X(1.0f, 0.0f, 0.0f);
+    static const vec3 Y(0.0f, 1.0f, 0.0f);
+    static const vec3 Z(0.0f, 0.0f, 1.0f);
+
     glClear(GL_COLOR_BUFFER_BIT);
 
-    mat4 model_matrix;
-    model_matrix = translate(-3.0f, 0.0f, -5.0f);
+    float t = ((clock() / 10) & 0x1FFF) / float(0x1FFF);
 
-    mat4 projection_matrix(frustum(-1.0f, 1.0f, -aspect, aspect, 1.0f, 5000.0f));
+    mat4 model_matrix(translate(0.0f, 0.0f, -5.0f) * rotate(t * 360.0f, Y) * rotate(t * 360.0f, Z));
+    mat4 projection_matrix(frustum(-1.0f, 1.0f, -aspect, aspect, 1.0f, 500.0f));
+
+    glUniformMatrix4fv(render_model_matrix_loc, 1, GL_FALSE, model_matrix);
     glUniformMatrix4fv(render_projection_matrix_loc, 1, GL_FALSE, projection_matrix);
 
-    model_matrix = translate(-3.0f, 0.0f, -5.0f);
-    glUniformMatrix4fv(render_model_matrix_loc, 1, GL_FALSE, model_matrix);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
+    glBindVertexArray(VAOs[VertexBuffer]);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[ElementBuffer]);
 
-    model_matrix = translate(-1.0f, 0.0f, -5.0f);
-    glUniformMatrix4fv(render_model_matrix_loc, 1, GL_FALSE, model_matrix);
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL);
-
-    model_matrix = translate(1.0f, 0.0f, -5.0f);
-    glUniformMatrix4fv(render_model_matrix_loc, 1, GL_FALSE, model_matrix);
-    glDrawElementsBaseVertex(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL, 0);
-
-    model_matrix = translate(3.0f, 0.0f, -5.0f);
-    glUniformMatrix4fv(render_model_matrix_loc, 1, GL_FALSE, model_matrix);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 3, 1);
+    glEnable(GL_PRIMITIVE_RESTART);
+    glPrimitiveRestartIndex(0xFFFF);
+    glDrawElements(GL_TRIANGLE_STRIP, 17, GL_UNSIGNED_SHORT, NULL);
 
     glFlush();
+}
+
+bool animated = true;
+
+void redisplay_timer(int v) {
+    static int a = 0;
+    if (animated)
+        glutTimerFunc((unsigned int)(1000 / 60), redisplay_timer, a);
+    glutPostRedisplay();
+    a++;
+}
+
+void clickEvent(int button, int state, int x, int y) {
+    animated = button != GLUT_LEFT_BUTTON;
+    if (animated) redisplay_timer(0);
 }
 
 int main(int argc, const char ** argv) {
@@ -131,6 +160,8 @@ int main(int argc, const char ** argv) {
     init();
 
     glutDisplayFunc(display);
+    redisplay_timer(0);
+    glutMouseFunc(clickEvent);
 
     glutMainLoop();
 }
