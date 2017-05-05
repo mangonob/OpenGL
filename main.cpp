@@ -40,8 +40,8 @@ VBObject object;
 
 void init(void) {
     ShaderInfo shaders[] = {
-            { GL_VERTEX_SHADER, "shaders/instancing.vert" },
-            { GL_FRAGMENT_SHADER, "shaders/instancing.frag" },
+            { GL_VERTEX_SHADER, "shaders/primitive_restart/primitive_restart.vs.glsl" },
+            { GL_FRAGMENT_SHADER, "shaders/primitive_restart/primitive_restart.fs.glsl" },
             { GL_NONE, NULL },
     };
 
