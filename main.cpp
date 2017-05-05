@@ -51,10 +51,8 @@ void init(void) {
     render_model_matrix_loc = glGetUniformLocation(program, "model_matrix");
     render_projection_matrix_loc = glGetUniformLocation(program, "projection_matrix");
 
+    object.LoadFromVBM("armadillo_low.vbm", 0, 1, 2);
     object.BindVertexArray();
-
-    glGenBuffers(NumVAOs, VAOs);
-    glBufferData(GL_ARRAY_BUFFER, 4 * INSTANCE_COUNT, NULL, GL_DYNAMIC_DRAW);
 
     vec4 colors[INSTANCE_COUNT];
 
@@ -78,7 +76,7 @@ void init(void) {
     glEnableVertexAttribArray(3);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[ColorBuffer]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
     glVertexAttribDivisor(4, 1);
     glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(4);
@@ -137,7 +135,7 @@ void display(void) {
 
     glUniformMatrix4fv(render_projection_matrix_loc, 1, GL_FALSE, projection_matrix);
 
-    object.Render(0, INSTANCE_COUNT);
+    object.Render(0, 1);
 
     glFlush();
 }
@@ -167,7 +165,7 @@ int main(int argc, const char ** argv) {
     init();
 
     glutDisplayFunc(display);
-    redisplay_timer(0);
+//    redisplay_timer(0);
     glutMouseFunc(clickEvent);
 
     glutMainLoop();
