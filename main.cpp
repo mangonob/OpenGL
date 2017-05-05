@@ -21,7 +21,7 @@ using namespace vmath;
 
 
 enum VAO_IDs { Triangles, NumVAOs };
-enum VBO_IDs { VertexBuffer, NumVBOs };
+enum VBO_IDs { WeightBuffer, ColorBuffer, NumVBOs };
 enum EBO_IDs { ElementBuffer, NumEBOs };
 enum Attrib_IDs { vPosition, vColor };
 
@@ -34,65 +34,11 @@ GLint render_projection_matrix_loc;
 
 float aspect = 1.0f;
 
+const static int INSTANCE_COUNT = 100;
+
+VBObject object;
+
 void init(void) {
-
-    // four
-    static const GLfloat cube_positions[] =
-    {
-        -1.0f, -1.0f, -1.0f, 1.0f,
-        -1.0f, -1.0f,  1.0f, 1.0f,
-        -1.0f,  1.0f, -1.0f, 1.0f,
-        -1.0f,  1.0f,  1.0f, 1.0f,
-         1.0f, -1.0f, -1.0f, 1.0f,
-         1.0f, -1.0f,  1.0f, 1.0f,
-         1.0f,  1.0f, -1.0f, 1.0f,
-         1.0f,  1.0f,  1.0f, 1.0f,
-    };
-
-    static const GLfloat cube_colors[] =
-    {
-        1.0f, 1.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 1.0f,
-        1.0f, 0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 1.0f, 1.0f,
-        0.0f, 1.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 1.0f,
-    };
-
-
-    // index of triangle_strips
-    static const GLushort cube_indices[] =
-    {
-        0, 1, 2, 3, 6, 7, 4, 5,     // first strip
-        0xFFFF,                     // primitive reset index
-        2, 6, 0, 4, 1, 5, 3, 7,     // second strip
-    };
-
-
-    // setup OpenGL
-    glEnable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-
-    // element buffer
-    glGenBuffers(NumEBOs, EBOs);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[ElementBuffer]);
-
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_indices), cube_indices, GL_STATIC_DRAW);
-
-    // vertex array
-    glGenVertexArrays(NumVAOs, VAOs);
-    glBindVertexArray(VAOs[Triangles]);
-
-    // array buffer
-    glGenBuffers(NumVBOs, VBOs);
-    glBindBuffer(GL_ARRAY_BUFFER, VBOs[VertexBuffer]);
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_positions) + sizeof(cube_colors), NULL, GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(cube_positions), cube_positions);
-    glBufferSubData(GL_ARRAY_BUFFER, sizeof(cube_positions), sizeof(cube_colors), cube_colors);
-
     ShaderInfo shaders[] = {
             { GL_VERTEX_SHADER, "shaders/primitive_restart/primitive_restart.vs.glsl" },
             { GL_FRAGMENT_SHADER, "shaders/primitive_restart/primitive_restart.fs.glsl" },
@@ -105,10 +51,40 @@ void init(void) {
     render_model_matrix_loc = glGetUniformLocation(program, "model_matrix");
     render_projection_matrix_loc = glGetUniformLocation(program, "projection_matrix");
 
-    glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-    glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, (const void*)sizeof(cube_positions));
-    glEnableVertexAttribArray(vPosition);
-    glEnableVertexAttribArray(vColor);
+    object.BindVertexArray();
+
+    glGenBuffers(NumVAOs, VAOs);
+    glBufferData(GL_ARRAY_BUFFER, 4 * INSTANCE_COUNT, NULL, GL_DYNAMIC_DRAW);
+
+    vec4 colors[INSTANCE_COUNT];
+
+    for (int n = 0; n < INSTANCE_COUNT; ++n) {
+        float a = float(n) / 4.0f;
+        float b = float(n) / 5.0f;
+        float c = float(n) / 6.0f;
+
+        colors[n][0] = 0.5f * (sinf(a + 1.0f) + 1.0f);
+        colors[n][1] = 0.5f * (sinf(b + 2.0f) + 1.0f);
+        colors[n][2] = 0.5f * (sinf(c + 3.0f) + 1.0f);
+        colors[n][3] = 1.0f;
+    }
+
+    glGenBuffers(2, VBOs);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[WeightBuffer]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), NULL, GL_DYNAMIC_DRAW);
+    glVertexAttribDivisor(3, 1);
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(3);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[ColorBuffer]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_DYNAMIC_DRAW);
+    glVertexAttribDivisor(4, 1);
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(4);
+
+    // Unbind object's array buffer
+    glBindVertexArray(0);
 }
 
 void display(void) {
@@ -120,18 +96,48 @@ void display(void) {
 
     float t = ((clock() / 10) & 0x1FFF) / float(0x1FFF);
 
-    mat4 model_matrix(translate(0.0f, 0.0f, -5.0f) * rotate(t * 360.0f, Y) * rotate(t * 360.0f, Z));
-    mat4 projection_matrix(frustum(-1.0f, 1.0f, -aspect, aspect, 1.0f, 500.0f));
+    vec4 weights[INSTANCE_COUNT];
 
-    glUniformMatrix4fv(render_model_matrix_loc, 1, GL_FALSE, model_matrix);
+    for (int n = 0; n < INSTANCE_COUNT; ++n) {
+        float a = float(n) / 4.0f;
+        float b = float(n) / 5.0f;
+        float c = float(n) / 6.0f;
+
+        weights[n][0] = 0.5f * (sinf(t * 6.28318531f * 8.0f + a) + 1.0f);
+        weights[n][1] = 0.5f * (sinf(t * 6.28318531f * 26.0f + b) + 1.0f);
+        weights[n][2] = 0.5f * (sinf(t * 6.28318531f * 21.0f + c) + 1.0f);
+        weights[n][3] = 0.5f * (sinf(t * 6.28318531f * 13.0f + a + b) + 1.0f);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[WeightBuffer]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(weights), weights, GL_DYNAMIC_DRAW);
+
+    // Clear
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Setup
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+
+    mat4 model_matrix[4];
+
+    for (int n = 0; n < 4; ++n) {
+        model_matrix[n] = (vmath::scale(5.0f) *
+                           vmath::rotate(t * 360.0f * 40.0f + float(n + 1) * 29.0f, 0.0f, 1.0f, 0.0f) *
+                           vmath::rotate(t * 360.0f * 20.0f + float(n + 1) * 35.0f, 0.0f, 0.0f, 1.0f) *
+                           vmath::rotate(t * 360.0f * 30.0f + float(n + 1) * 67.0f, 0.0f, 1.0f, 0.0f) *
+                           vmath::translate((float)n * 10.0f - 15.0f, 0.0f, 0.0f) *
+                           vmath::scale(0.01f));
+    }
+
+    glUniformMatrix4fv(render_model_matrix_loc, 4, GL_FALSE, model_matrix[0]);
+
+    mat4 projection_matrix(frustum(-1.0f, 1.0f, -aspect, aspect, 1.0f, 5000.0f) * translate(0.0f, 0.0f, -100.0f));
+
     glUniformMatrix4fv(render_projection_matrix_loc, 1, GL_FALSE, projection_matrix);
 
-    glBindVertexArray(VAOs[VertexBuffer]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[ElementBuffer]);
-
-    glEnable(GL_PRIMITIVE_RESTART);
-    glPrimitiveRestartIndex(0xFFFF);
-    glDrawElements(GL_TRIANGLE_STRIP, 17, GL_UNSIGNED_SHORT, NULL);
+    object.Render(0, INSTANCE_COUNT);
 
     glFlush();
 }
