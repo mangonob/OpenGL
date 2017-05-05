@@ -26,11 +26,7 @@ include_directories(include)
 
 
 ## add source code
-set(SOURCE_FILES
-        main.cpp
-        LoadShaders.cpp
-        lib/vbm.cpp
-        )
+set(SOURCE_FILES main.cpp LoadShaders.cpp LoadShaders.h)
 
 add_executable(OpenGL ${SOURCE_FILES})
 
