@@ -160,8 +160,8 @@ int main(int argc, const char ** argv) {
     init();
 
     glutDisplayFunc(display);
-//    redisplay_timer(0);
-//    glutMouseFunc(clickEvent);
+    redisplay_timer(0);
+    glutMouseFunc(clickEvent);
 
     glutMainLoop();
 }
